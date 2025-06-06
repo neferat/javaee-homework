@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户登录</title>
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background-color: #f4f4f9;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .card {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: transform 0.3s ease-in-out;
+      position: relative;
+      z-index: 1;
+      background-color: rgba(255, 255, 255, 0.8);
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+    }
+
+    .video-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      object-fit: cover;
+    }
+  </style>
+</head>
+
+<body class="flex justify-center items-center min-h-screen">
+<video autoplay muted loop class="video-background">
+  <source src="video/login.mp4" type="video/mp4">
+  你的浏览器不支持视频播放。
+</video>
+<div class="card bg-white p-8 rounded-lg w-full max-w-md">
+  <h2 class="text-2xl font-bold text-center mb-6">魏良力202210610640</h2>
+  <form id="loginvalidate" method="post" action="/loginvalidate">
+    <div class="mb-4">
+      <label for="username" class="block text-gray-700 text-sm font-bold mb-2">用户名</label>
+      <input type="text" id="username" name="username" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="请输入用户名">
+    </div>
+    <div class="mb-6">
+      <label for="password" class="block text-gray-700 text-sm font-bold mb-2">密码</label>
+      <input type="password" id="password" name="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="请输入密码">
+    </div>
+    <div class="flex items-center justify-between">
+      <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">登录</button>
+    </div>
+  </form>
+  <div id="message" class="mt-4 text-center"></div>
+</div>
+
+
+</body>
+
+</html>

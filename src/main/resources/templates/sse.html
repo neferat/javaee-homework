@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SSE Example</title>
+    <style>
+        #messages {
+            width: 80%;
+            margin: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            background-color: #f9f9f9;
+        }
+        p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div id="messages"></div>
+
+<script>
+    function connectSse(clientId) {
+        if (!clientId) {
+            console.error("Client ID is required");
+            return;
+        }
+
+        // 创建 EventSource 对象，连接到服务器的 SSE 端点
+        const eventSource = new EventSource(`/sse/connect/${clientId}`);
+
+        // 监听消息事件
+        eventSource.onmessage = function(event) {
+            const messagesDiv = document.getElementById('messages');
+            const newMessage = document.createElement('p');
+            newMessage.textContent = event.data;
+            messagesDiv.appendChild(newMessage);
+        };
+
+        // 错误处理
+        eventSource.onerror = function(err) {
+            console.error("遇到错误:", err);
+            eventSource.close();
+        };
+    }
+
+    // 页面加载时自动连接SSE
+    window.onload = function() {
+        const clientId = prompt("请输入客户端ID:");
+        if (clientId) {
+            connectSse(clientId);
+        }
+    };
+</script>
+
+</body>
+</html>

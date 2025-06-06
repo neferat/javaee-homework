@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="boot.spring.mapper.PostMapper">
+
+    <resultMap id="BaseResultMap" type="boot.spring.po.Post">
+        <id column="post_id" jdbcType="BIGINT" property="postId" />
+        <result column="title" jdbcType="VARCHAR" property="title" />
+        <result column="description" jdbcType="VARCHAR" property="description" />
+        <result column="category" jdbcType="VARCHAR" property="category" />
+        <result column="image_url" jdbcType="VARCHAR" property="imageUrl" />
+        <result column="likes" jdbcType="INTEGER" property="likes" />
+        <result column="comments_count" jdbcType="INTEGER" property="commentsCount" />
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+        <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
+        <result column="user_id" jdbcType="BIGINT" property="userId" />
+        <!-- 关联用户信息 -->
+        <association property="user" javaType="boot.spring.po.User">
+            <id column="user_id" property="userId" />
+            <result column="username" property="username" />
+            <result column="avatar_url" property="avatarUrl" />
+        </association>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        post_id, title, description, category, image_url, likes, comments_count, created_at, updated_at, user_id
+    </sql>
+    
+    <sql id="Post_With_User_Columns">
+        p.post_id, p.title, p.description, p.category, p.image_url, p.likes, p.comments_count, p.created_at, p.updated_at, p.user_id,
+        u.username, u.avatar_url
+    </sql>
+
+    <select id="getAllPosts" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Post_With_User_Columns" />
+        FROM posts p
+        LEFT JOIN users u ON p.user_id = u.user_id
+        ORDER BY p.created_at DESC
+    </select>
+
+    <select id="getPostsByCategory" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Post_With_User_Columns" />
+        FROM posts p
+        LEFT JOIN users u ON p.user_id = u.user_id
+        WHERE p.category = #{category,jdbcType=VARCHAR}
+        ORDER BY p.created_at DESC
+    </select>
+
+    <select id="getPostById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Post_With_User_Columns" />
+        FROM posts p
+        LEFT JOIN users u ON p.user_id = u.user_id
+        WHERE p.post_id = #{postId,jdbcType=BIGINT}
+    </select>
+
+    <insert id="insertPost" parameterType="boot.spring.po.Post" useGeneratedKeys="true" keyProperty="postId" keyColumn="post_id">
+        INSERT INTO posts (title, description, category, image_url, likes, comments_count, created_at, updated_at, user_id)
+        VALUES (#{title,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{category,jdbcType=VARCHAR}, 
+                #{imageUrl,jdbcType=VARCHAR}, #{likes,jdbcType=INTEGER}, #{commentsCount,jdbcType=INTEGER}, 
+                #{createdAt,jdbcType=TIMESTAMP}, #{updatedAt,jdbcType=TIMESTAMP}, #{userId,jdbcType=BIGINT})
+    </insert>
+
+    <update id="updateLikes" parameterType="map">
+        UPDATE posts
+        SET likes = #{likes,jdbcType=INTEGER}, updated_at = NOW()
+        WHERE post_id = #{postId,jdbcType=BIGINT}
+    </update>
+
+    <update id="updateCommentsCount" parameterType="map">
+        UPDATE posts
+        SET comments_count = #{comments,jdbcType=INTEGER}, updated_at = NOW()
+        WHERE post_id = #{postId,jdbcType=BIGINT}
+    </update>
+
+</mapper> 

@@ -1,0 +1,41 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    hikari:
+      sakila:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        password: 123456
+        jdbc-url: jdbc:mysql://localhost:3306/sakila?serverTimezone=GMT%2B8
+        username: root
+        pool-name: DatebookHikariCP_SAKILAMYSQL
+      rest:
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        password: 123456
+        jdbc-url: jdbc:mysql://localhost:3306/rest?serverTimezone=GMT%2B8
+        username: root
+        pool-name: DatebookHikariCP_RESTMYSQL
+
+  web:
+    cors:
+      allowed-origins: "http://example.com"
+      allowed-methods: GET, POST, PUT, DELETE, OPTIONS
+      allowed-headers: "*"
+      allow-credentials: true
+      max-age: 3600
+
+logging:
+  config: classpath:logback-spring.xml
+
+ftp:
+  host: 192.168.0.39
+  password: Wsz123
+  port: 21
+  username: wangshenzhan
+
+threadpool:
+  coresize: 20
+  maxsize: 50
+  alivetime: 30
+  queuesize: 10
