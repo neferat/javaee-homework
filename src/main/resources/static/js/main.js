@@ -241,6 +241,52 @@ function closeAddPostModal() {
     closeModal(addPostModal);
 }
 
+// 上传图片到服务器
+async function uploadImage(file) {
+    try {
+        console.log('开始上传图片:', file.name, '大小:', file.size, '类型:', file.type);
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch('/api/posts/upload-image', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        console.log('上传响应:', result);
+        
+        if (result.code !== 200) {
+            throw new Error(result.message || '图片上传失败');
+        }
+        
+        // 记录成功上传的信息
+        console.log('图片上传成功:', result.data);
+        if (result.data.fullPath) {
+            console.log('文件保存路径:', result.data.fullPath);
+        }
+        
+        return result.data.imageUrl;
+    } catch (error) {
+        console.error('Error uploading image:', error);
+        throw error;
+    }
+}
+
+// 测试上传目录配置
+async function testUploadDirectory() {
+    try {
+        const response = await fetch('/api/posts/test-upload-dir');
+        const result = await response.json();
+        console.log('上传目录测试结果:', result);
+        return result;
+    } catch (error) {
+        console.error('测试上传目录失败:', error);
+        return null;
+    }
+}
+
 // 预览图片
 function previewImage(file) {
     if (file) {
@@ -262,7 +308,7 @@ async function submitPost(e) {
     const title = document.getElementById('postTitle').value;
     const description = document.getElementById('postDescription').value;
     const category = document.getElementById('postCategory').value;
-    // const file = document.getElementById('postImage').files[0]; // 移除文件获取
+    const file = document.getElementById('postImage').files[0];
     
     // 简单验证
     if (!title || !description || !category) {
@@ -271,25 +317,36 @@ async function submitPost(e) {
     }
     
     try {
+        // 获取提交按钮，用于显示进度
+        const submitBtn = postForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        
+        let imageUrl = '';
+        
+        // 如果有选择图片，先上传图片
+        if (file) {
+            // 显示上传进度
+            submitBtn.textContent = '上传图片中...';
+            submitBtn.disabled = true;
+            
+            try {
+                imageUrl = await uploadImage(file);
+                submitBtn.textContent = '发布中...';
+            } catch (error) {
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+                throw new Error('图片上传失败：' + error.message);
+            }
+        }
+        
         // 构建帖子数据
         const postData = {
             title: title,
             description: description,
             category: category,
-            userId: 1 // 假设当前用户ID为1
+            userId: 1, // 假设当前用户ID为1
+            imageUrl: imageUrl // 使用上传后的图片URL，如果没有上传图片则为空字符串
         };
-        
-        // 直接根据分类设置 imageUrl
-        // 如果分类是 "默认" 或其他特定值，您可能需要特殊处理，这里使用通用模式
-        // 例如: postData.imageUrl = category === 'all' ? 'images/posts/default.jpg' : `images/posts/${category}.jpg`;
-        // 根据之前的总结，我们设置为 `images/posts/${category}.jpg`
-        // 如果分类本身可能就是 default, 那么路径就是 images/posts/default.jpg
-        // 如果需要像 images/posts/default1.jpg 这样的，可以在后端处理或者在这里调整逻辑
-        postData.imageUrl = `images/posts/${category}.jpg`;
-        // 如果后端createPost中的默认图片逻辑是 images/posts/category1.jpg, 
-        // 并且希望在没有选择分类时（category可能为空或特定值）也使用它，
-        // 这里的逻辑可能需要与后端对齐，或者让后端全权处理默认图片。
-        // 为简化，此处遵循之前总结的 `images/posts/${category}.jpg`。
 
         // 发送请求创建帖子
         const response = await fetch('/api/posts', {
@@ -306,6 +363,10 @@ async function submitPost(e) {
             throw new Error(result.message || '创建帖子失败');
         }
         
+        // 恢复按钮状态
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+        
         // 关闭模态框
         closeAddPostModal();
         
@@ -314,9 +375,15 @@ async function submitPost(e) {
         
         // 显示成功提示
         alert('帖子发布成功！');
+        
     } catch (error) {
         console.error('Error creating post:', error);
         alert(`创建帖子失败: ${error.message}`);
+        
+        // 恢复按钮状态
+        const submitBtn = postForm.querySelector('button[type="submit"]');
+        submitBtn.textContent = '发布';
+        submitBtn.disabled = false;
     }
 }
 
@@ -375,6 +442,8 @@ postForm.addEventListener('submit', submitPost);
 // 初始加载
 document.addEventListener('DOMContentLoaded', () => {
     loadPosts();
+    // 测试上传目录配置
+    testUploadDirectory();
 });
 
 // 显示模态框
