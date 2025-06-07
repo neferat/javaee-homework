@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -413,14 +414,36 @@ public class PostController {
      * 创建帖子
      */
     @PostMapping
-    public ResponseResult<Post> createPost(@RequestBody Post post) {
+    public ResponseResult<Post> createPost(@RequestBody Post post, HttpSession session) {
         try {
             LOG.info("收到创建帖子请求: {}", post.getTitle());
             
-            // 设置默认值
-            if (post.getUserId() == null) {
-                post.setUserId(1L); // 默认用户ID
+            // 从session获取当前用户ID
+            Long userId = (Long) session.getAttribute("userId");
+            if (userId == null) {
+                // 如果session中没有userId，尝试通过用户名获取
+                String username = (String) session.getAttribute("currentUser");
+                if (username != null) {
+                    // 可以通过UserService根据用户名获取用户ID
+                    if (userService != null) {
+                        try {
+                            User user = userService.getUserByUsername(username);
+                            if (user != null) {
+                                userId = user.getUserId();
+                            }
+                        } catch (Exception e) {
+                            LOG.warn("无法通过用户名获取用户ID: {}", username);
+                        }
+                    }
+                }
+                
+                // 如果仍然没有用户ID，使用默认值
+                if (userId == null) {
+                    userId = 1L; // 默认用户ID
+                }
             }
+            
+            post.setUserId(userId);
             if (post.getLikes() == null) {
                 post.setLikes(0);
             }
@@ -480,6 +503,36 @@ public class PostController {
         } catch (Exception e) {
             LOG.error("更新帖子评论数失败", e);
             return ResponseResult.error("更新帖子评论数失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 搜索帖子（模糊查询）
+     */
+    @GetMapping("/search")
+    public ResponseResult<List<Post>> searchPosts(@RequestParam("q") String query) {
+        try {
+            LOG.info("搜索帖子，关键词: {}", query);
+            
+            if (query == null || query.trim().isEmpty()) {
+                return ResponseResult.error("搜索关键词不能为空");
+            }
+            
+            query = query.trim();
+            if (query.length() > 100) {
+                return ResponseResult.error("搜索关键词过长");
+            }
+            
+            List<Post> posts = postService.searchPosts(query);
+            
+            // 为每个帖子添加用户信息
+            tryAddUserInfoToPosts(posts);
+            
+            LOG.info("搜索到{}条帖子", posts.size());
+            return ResponseResult.success(posts);
+        } catch (Exception e) {
+            LOG.error("搜索帖子失败", e);
+            return ResponseResult.error("搜索失败：" + e.getMessage());
         }
     }
     

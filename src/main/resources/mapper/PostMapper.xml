@@ -70,8 +70,18 @@
 
     <update id="updateCommentsCount" parameterType="map">
         UPDATE posts
-        SET comments_count = #{comments,jdbcType=INTEGER}, updated_at = NOW()
+        SET comments_count = #{commentsCount,jdbcType=INTEGER}, updated_at = NOW()
         WHERE post_id = #{postId,jdbcType=BIGINT}
     </update>
+
+    <select id="searchPosts" parameterType="String" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Post_With_User_Columns" />
+        FROM posts p
+        LEFT JOIN users u ON p.user_id = u.user_id
+        WHERE (p.title LIKE CONCAT('%', #{query,jdbcType=VARCHAR}, '%') 
+           OR p.description LIKE CONCAT('%', #{query,jdbcType=VARCHAR}, '%'))
+        ORDER BY p.created_at DESC
+    </select>
 
 </mapper> 

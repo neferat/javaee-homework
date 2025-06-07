@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录失败</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .fail-container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+        }
+        .fail-icon {
+            font-size: 64px;
+            color: #ff4444;
+            margin-bottom: 20px;
+        }
+        .fail-title {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .fail-message {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        .back-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+        .back-btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="fail-container">
+        <div class="fail-icon">❌</div>
+        <h2 class="fail-title">登录失败</h2>
+        <p class="fail-message">
+            用户名或密码错误，或账户未激活。<br>
+            请检查您的登录信息后重试。
+        </p>
+        <a href="/login" class="back-btn">返回登录</a>
+    </div>
+</body>
+</html> 

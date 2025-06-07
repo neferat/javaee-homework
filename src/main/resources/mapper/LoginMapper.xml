@@ -13,5 +13,26 @@
     	select * from staff where username=#{name}
     </select>
     
+    <!-- 新增users表的resultMap -->
+    <resultMap type="boot.spring.po.User" id="userMap">
+        <id column="user_id" property="userId" ></id>
+        <result column="username" property="username"/>
+        <result column="password" property="password"/>
+        <result column="email" property="email"/>
+        <result column="phone_number" property="phoneNumber"/>
+        <result column="avatar_url" property="avatarUrl"/>
+        <result column="bio" property="bio"/>
+        <result column="registration_date" property="registrationDate"/>
+        <result column="points" property="points"/>
+        <result column="user_level" property="userLevel"/>
+        <result column="status" property="status"/>
+        <result column="third_party_platform" property="thirdPartyPlatform"/>
+        <result column="third_party_id" property="thirdPartyId"/>
+    </resultMap>
+    
+    <!-- 从users表查询用户 -->
+    <select id="getUserByUsername" parameterType="String" resultMap="userMap">
+    	select * from users where username=#{username} and status='active'
+    </select>
     
 </mapper>

@@ -65,4 +65,11 @@ public interface PostMapper {
      * @return 影响的行数
      */
     int deletePost(@Param("postId") Long postId);
+    
+    /**
+     * 搜索帖子（模糊查询）
+     * @param query 搜索关键词
+     * @return 匹配的帖子列表
+     */
+    List<Post> searchPosts(@Param("query") String query);
 } 

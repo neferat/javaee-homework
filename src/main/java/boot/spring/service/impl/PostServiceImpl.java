@@ -79,4 +79,9 @@ public class PostServiceImpl implements PostService {
     public void deletePost(Long postId) {
         postMapper.deletePost(postId);
     }
+    
+    @Override
+    public List<Post> searchPosts(String query) {
+        return postMapper.searchPosts(query);
+    }
 } 

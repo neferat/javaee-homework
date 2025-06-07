@@ -29,7 +29,9 @@ async function loadPosts(category = 'all') {
             url = `/api/posts/category/${category}`;
         }
         
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            credentials: 'include'
+        });
         const result = await response.json();
         
         // 移除加载中
@@ -127,7 +129,9 @@ async function showPostDetails(post) {
         // 如果是直接点击卡片，则需要从后端获取完整帖子信息
         if (!post.user || typeof post.user === 'undefined') {
             try {
-                const response = await fetch(`/api/posts/${post.postId}`);
+                const response = await fetch(`/api/posts/${post.postId}`, {
+                    credentials: 'include'
+                });
                 const result = await response.json();
                 
                 if (result.code === 200) {
@@ -202,7 +206,8 @@ async function toggleLike(button, post) {
         
         // 发送请求更新点赞数
         const response = await fetch(`/api/posts/${post.postId}/likes?likes=${newLikes}`, {
-            method: 'PUT'
+            method: 'PUT',
+            credentials: 'include'
         });
         
         const result = await response.json();
@@ -272,7 +277,8 @@ async function uploadImage(file) {
         
         const response = await fetch('/api/posts/upload-image', {
             method: 'POST',
-            body: formData
+            body: formData,
+            credentials: 'include'
         });
         
         const result = await response.json();
@@ -298,7 +304,9 @@ async function uploadImage(file) {
 // 测试上传目录配置
 async function testUploadDirectory() {
     try {
-        const response = await fetch('/api/posts/test-upload-dir');
+        const response = await fetch('/api/posts/test-upload-dir', {
+            credentials: 'include'
+        });
         const result = await response.json();
         console.log('上传目录测试结果:', result);
         return result;
@@ -384,12 +392,21 @@ async function submitPost(e) {
             }
         }
         
+        // 获取当前用户信息
+        let currentUserId = 1; // 默认值
+        if (window.UserManager && window.UserManager.currentUser) {
+            const user = window.UserManager.currentUser;
+            if (typeof user === 'object' && user.userId) {
+                currentUserId = user.userId;
+            }
+        }
+        
         // 构建帖子数据
         const postData = {
             title: title,
             description: description,
             category: category,
-            userId: 1, // 假设当前用户ID为1
+            userId: currentUserId,
             imageUrl: imageUrl // 使用上传后的图片URL，如果没有上传图片则为空字符串
         };
 
@@ -399,7 +416,8 @@ async function submitPost(e) {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(postData)
+            body: JSON.stringify(postData),
+            credentials: 'include'
         });
         
         const result = await response.json();

@@ -58,4 +58,11 @@ public interface PostService {
      * @param postId 帖子ID
      */
     void deletePost(Long postId);
+    
+    /**
+     * 搜索帖子（模糊查询）
+     * @param query 搜索关键词
+     * @return 匹配的帖子列表
+     */
+    List<Post> searchPosts(String query);
 } 
