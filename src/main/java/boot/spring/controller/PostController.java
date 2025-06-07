@@ -35,7 +35,7 @@ public class PostController {
     private UserService userService;
     
     private static final Logger LOG = LoggerFactory.getLogger(PostController.class);
-
+    
     /**
      * 获取所有帖子
      */
@@ -176,17 +176,31 @@ public class PostController {
     public ResponseResult<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) {
         try {
             LOG.info("=== 开始图片上传 ===");
-            LOG.info("文件名: {}, 大小: {} bytes, 类型: {}", 
-                    file.getOriginalFilename(), file.getSize(), file.getContentType());
+            LOG.info("文件名: {}, 大小: {} bytes ({} MB), 类型: {}", 
+                    file.getOriginalFilename(), file.getSize(), 
+                    String.format("%.2f", (double)file.getSize() / 1024 / 1024), 
+                    file.getContentType());
             
             if (file.isEmpty()) {
                 return ResponseResult.error("请选择要上传的图片");
             }
             
-            // 检查文件类型
+            // 检查文件类型 - 明确支持JPG和PNG格式
             String contentType = file.getContentType();
-            if (contentType == null || !contentType.startsWith("image/")) {
-                return ResponseResult.error("只支持图片格式文件");
+            String[] allowedMimeTypes = {"image/jpeg", "image/jpg", "image/png"};
+            boolean validMimeType = false;
+            
+            if (contentType != null) {
+                for (String allowedType : allowedMimeTypes) {
+                    if (allowedType.equals(contentType)) {
+                        validMimeType = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (!validMimeType) {
+                return ResponseResult.error("只支持JPG和PNG格式的图片文件，当前文件类型：" + contentType);
             }
             
             // 获取文件原始名称和扩展名
@@ -198,7 +212,27 @@ public class PostController {
             String fileExtension = "";
             int lastDotIndex = originalFilename.lastIndexOf('.');
             if (lastDotIndex > 0) {
-                fileExtension = originalFilename.substring(lastDotIndex);
+                fileExtension = originalFilename.substring(lastDotIndex).toLowerCase();
+            }
+            
+            // 验证文件扩展名
+            String[] allowedExtensions = {".jpg", ".jpeg", ".png"};
+            boolean validExtension = false;
+            for (String allowedExt : allowedExtensions) {
+                if (allowedExt.equals(fileExtension)) {
+                    validExtension = true;
+                    break;
+                }
+            }
+            
+            if (!validExtension) {
+                return ResponseResult.error("文件扩展名必须是 .jpg、.jpeg 或 .png，当前扩展名：" + fileExtension);
+            }
+            
+            // 验证文件大小（限制为5MB）
+            long maxSize = 5 * 1024 * 1024; // 5MB
+            if (file.getSize() > maxSize) {
+                return ResponseResult.error("图片文件大小不能超过5MB，当前大小：" + (file.getSize() / 1024 / 1024) + "MB");
             }
             
             // 生成唯一文件名
@@ -374,7 +408,7 @@ public class PostController {
             return ResponseResult.error("测试失败：" + e.getMessage());
         }
     }
-    
+
     /**
      * 创建帖子
      */

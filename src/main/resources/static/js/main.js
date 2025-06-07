@@ -246,6 +246,27 @@ async function uploadImage(file) {
     try {
         console.log('开始上传图片:', file.name, '大小:', file.size, '类型:', file.type);
         
+        // 验证文件类型
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        const allowedExtensions = ['.jpg', '.jpeg', '.png'];
+        
+        if (!allowedTypes.includes(file.type)) {
+            throw new Error('只支持JPG和PNG格式的图片文件');
+        }
+        
+        // 验证文件扩展名
+        const fileName = file.name.toLowerCase();
+        const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+        if (!hasValidExtension) {
+            throw new Error('文件扩展名必须是 .jpg、.jpeg 或 .png');
+        }
+        
+        // 验证文件大小（可选，限制为10MB）
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+            throw new Error('图片文件大小不能超过5MB');
+        }
+        
         const formData = new FormData();
         formData.append('file', file);
         
@@ -290,6 +311,30 @@ async function testUploadDirectory() {
 // 预览图片
 function previewImage(file) {
     if (file) {
+        // 验证文件类型
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        const allowedExtensions = ['.jpg', '.jpeg', '.png'];
+        
+        if (!allowedTypes.includes(file.type)) {
+            imagePreview.innerHTML = '<div class="placeholder" style="color: #e41e3f;">只支持JPG和PNG格式的图片文件</div>';
+            return;
+        }
+        
+        // 验证文件扩展名
+        const fileName = file.name.toLowerCase();
+        const hasValidExtension = allowedExtensions.some(ext => fileName.endsWith(ext));
+        if (!hasValidExtension) {
+            imagePreview.innerHTML = '<div class="placeholder" style="color: #e41e3f;">文件扩展名必须是 .jpg、.jpeg 或 .png</div>';
+            return;
+        }
+        
+        // 验证文件大小（限制为5MB）
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            imagePreview.innerHTML = '<div class="placeholder" style="color: #e41e3f;">图片文件大小不能超过5MB</div>';
+            return;
+        }
+        
         const reader = new FileReader();
         
         reader.onload = function(e) {
