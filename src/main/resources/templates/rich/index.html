@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>社交媒体首页</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/css/userProfile.css">
   <style>
     * {
@@ -804,6 +804,32 @@
     </div>
   </div>
   
+  <!-- 评论模态框 -->
+  <div class="modal" id="commentModal">
+    <div class="modal-content">
+      <button class="modal-close" id="commentModalClose">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="modal-body">
+        <h3 id="commentModalTitle">评论</h3>
+        
+        <!-- 评论输入区 -->
+        <div class="comment-input-section">
+          <textarea id="commentInput" placeholder="写下你的评论..." maxlength="500"></textarea>
+          <div class="comment-input-footer">
+            <span class="char-count">0/500</span>
+            <button id="submitComment" class="btn btn-primary">发送</button>
+          </div>
+        </div>
+        
+        <!-- 评论列表 -->
+        <div class="comments-list" id="commentsList">
+          <!-- 评论项将在这里动态生成 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 添加帖子按钮 -->
   <div class="add-post-btn" id="addPostBtn">
     <i class="fas fa-plus"></i>

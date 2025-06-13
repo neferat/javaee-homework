@@ -41,12 +41,13 @@ public class PostController {
      * 获取所有帖子
      */
     @GetMapping
-    public ResponseResult<List<Post>> getAllPosts() {
+    public ResponseResult<List<Post>> getAllPosts(HttpSession session) {
         try {
             List<Post> posts = postService.getAllPosts();
             
-            // 为每个帖子添加用户信息
+            // 为每个帖子添加用户信息和点赞状态
             tryAddUserInfoToPosts(posts);
+            addLikeStatusToPosts(posts, session);
             
             LOG.info("获取所有帖子");
             return ResponseResult.success(posts);
@@ -60,12 +61,13 @@ public class PostController {
      * 根据分类获取帖子
      */
     @GetMapping("/category/{category}")
-    public ResponseResult<List<Post>> getPostsByCategory(@PathVariable String category) {
+    public ResponseResult<List<Post>> getPostsByCategory(@PathVariable String category, HttpSession session) {
         try {
             List<Post> posts = postService.getPostsByCategory(category);
             
-            // 为每个帖子添加用户信息
+            // 为每个帖子添加用户信息和点赞状态
             tryAddUserInfoToPosts(posts);
+            addLikeStatusToPosts(posts, session);
             
             LOG.info("获取分类为{}的帖子", category);
             return ResponseResult.success(posts);
@@ -492,6 +494,73 @@ public class PostController {
     }
 
     /**
+     * 处理用户点赞/取消点赞操作
+     */
+    @PostMapping("/{postId}/like")
+    public ResponseResult<Map<String, Object>> toggleLike(@PathVariable Long postId, 
+                                                         @RequestBody Map<String, String> request,
+                                                         HttpSession session) {
+        try {
+            String action = request.get("action");
+            LOG.info("用户操作: {} 帖子ID: {}", action, postId);
+            
+            // 获取当前用户ID (简化版本，实际应该从session或JWT中获取)
+            Long userId = 1L; // 默认用户ID，实际项目中应该从认证系统获取
+            
+            // 获取当前帖子信息
+            Post post = postService.getPostById(postId);
+            if (post == null) {
+                return ResponseResult.error("帖子不存在");
+            }
+            
+            // 模拟点赞状态检查 (实际项目中应该有专门的用户点赞记录表)
+            // 这里简化处理，假设用户只能对每个帖子点一次赞
+            boolean isCurrentlyLiked = false; // 可以从session或数据库获取
+            String sessionKey = "liked_post_" + postId;
+            Boolean sessionLiked = (Boolean) session.getAttribute(sessionKey);
+            if (sessionLiked != null) {
+                isCurrentlyLiked = sessionLiked;
+            }
+            
+            boolean newLikedState;
+            int newLikes = post.getLikes() != null ? post.getLikes() : 0;
+            
+            if ("like".equals(action)) {
+                if (isCurrentlyLiked) {
+                    return ResponseResult.error("您已经点过赞了");
+                }
+                newLikedState = true;
+                newLikes++;
+                session.setAttribute(sessionKey, true);
+            } else if ("unlike".equals(action)) {
+                if (!isCurrentlyLiked) {
+                    return ResponseResult.error("您还没有点赞");
+                }
+                newLikedState = false;
+                newLikes--;
+                session.setAttribute(sessionKey, false);
+            } else {
+                return ResponseResult.error("无效的操作");
+            }
+            
+            // 更新数据库中的点赞数
+            postService.updateLikes(postId, newLikes);
+            
+            // 返回最新状态
+            Map<String, Object> result = new HashMap<>();
+            result.put("likes", newLikes);
+            result.put("isLiked", newLikedState);
+            
+            LOG.info("点赞操作完成 - 帖子ID: {}, 新状态: {}, 新点赞数: {}", postId, newLikedState, newLikes);
+            return ResponseResult.success(result);
+            
+        } catch (Exception e) {
+            LOG.error("点赞操作失败", e);
+            return ResponseResult.error("操作失败：" + e.getMessage());
+        }
+    }
+
+    /**
      * 更新帖子评论数
      */
     @PutMapping("/{postId}/comments")
@@ -581,5 +650,20 @@ public class PostController {
         defaultUser.setUsername("用户" + post.getUserId());
         defaultUser.setAvatarUrl("images/avatars/default.jpg");
         post.setUser(defaultUser);
+    }
+    
+    /**
+     * 为帖子列表添加用户点赞状态
+     */
+    private void addLikeStatusToPosts(List<Post> posts, HttpSession session) {
+        if (posts == null || session == null) {
+            return;
+        }
+        
+        for (Post post : posts) {
+            String sessionKey = "liked_post_" + post.getPostId();
+            Boolean isLiked = (Boolean) session.getAttribute(sessionKey);
+            post.setIsLiked(isLiked != null && isLiked);
+        }
     }
 } 

@@ -17,6 +17,7 @@ public class Post implements Serializable {
     private Date createdAt;
     private Date updatedAt;
     private User user;
+    private Boolean isLiked; // 当前用户是否点赞了这个帖子
 
     // Getters and Setters
     public Long getPostId() {
@@ -105,5 +106,13 @@ public class Post implements Serializable {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public Boolean getIsLiked() {
+        return isLiked;
+    }
+
+    public void setIsLiked(Boolean isLiked) {
+        this.isLiked = isLiked;
     }
 } 
