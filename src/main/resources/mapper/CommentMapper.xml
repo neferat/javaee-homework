@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="boot.spring.mapper.CommentMapper">
+
+    <resultMap id="BaseResultMap" type="boot.spring.po.Comment">
+        <id column="comment_id" jdbcType="BIGINT" property="commentId" />
+        <result column="post_id" jdbcType="BIGINT" property="postId" />
+        <result column="user_id" jdbcType="BIGINT" property="userId" />
+        <result column="content" jdbcType="LONGVARCHAR" property="content" />
+        <result column="created_at" jdbcType="TIMESTAMP" property="createdAt" />
+        <result column="updated_at" jdbcType="TIMESTAMP" property="updatedAt" />
+        <result column="status" jdbcType="TINYINT" property="status" />
+        <!-- 关联用户信息 -->
+        <result column="username" jdbcType="VARCHAR" property="username" />
+        <result column="user_avatar" jdbcType="VARCHAR" property="userAvatar" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        comment_id, post_id, user_id, content, created_at, updated_at, status
+    </sql>
+    
+    <sql id="Comment_With_User_Columns">
+        c.comment_id, c.post_id, c.user_id, c.content, c.created_at, c.updated_at, c.status,
+        u.username, u.avatar_url as user_avatar
+    </sql>
+
+    <!-- 根据帖子ID获取评论列表（包含用户信息） -->
+    <select id="getCommentsByPostId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Comment_With_User_Columns" />
+        FROM comments c
+        LEFT JOIN users u ON c.user_id = u.user_id
+        WHERE c.post_id = #{postId,jdbcType=BIGINT} 
+          AND c.status = 1
+        ORDER BY c.created_at ASC
+    </select>
+
+    <!-- 根据评论ID获取评论 -->
+    <select id="getCommentById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Comment_With_User_Columns" />
+        FROM comments c
+        LEFT JOIN users u ON c.user_id = u.user_id
+        WHERE c.comment_id = #{commentId,jdbcType=BIGINT}
+    </select>
+
+    <!-- 插入新评论 -->
+    <insert id="insertComment" parameterType="boot.spring.po.Comment" useGeneratedKeys="true" keyProperty="commentId" keyColumn="comment_id">
+        INSERT INTO comments (post_id, user_id, content, created_at, updated_at, status)
+        VALUES (#{postId,jdbcType=BIGINT}, #{userId,jdbcType=BIGINT}, #{content,jdbcType=LONGVARCHAR}, 
+                NOW(), NOW(), #{status,jdbcType=TINYINT})
+    </insert>
+
+    <!-- 更新评论内容 -->
+    <update id="updateComment" parameterType="boot.spring.po.Comment">
+        UPDATE comments
+        SET content = #{content,jdbcType=LONGVARCHAR},
+            updated_at = NOW()
+        WHERE comment_id = #{commentId,jdbcType=BIGINT}
+          AND user_id = #{userId,jdbcType=BIGINT}
+          AND status = 1
+    </update>
+
+    <!-- 删除评论（软删除） -->
+    <update id="deleteComment" parameterType="map">
+        UPDATE comments
+        SET status = 0,
+            updated_at = NOW()
+        WHERE comment_id = #{commentId,jdbcType=BIGINT}
+          AND user_id = #{userId,jdbcType=BIGINT}
+          AND status = 1
+    </update>
+
+    <!-- 统计帖子的评论数量 -->
+    <select id="countCommentsByPostId" parameterType="java.lang.Long" resultType="int">
+        SELECT COUNT(*)
+        FROM comments
+        WHERE post_id = #{postId,jdbcType=BIGINT}
+          AND status = 1
+    </select>
+
+    <!-- 获取用户的评论列表 -->
+    <select id="getCommentsByUserId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Comment_With_User_Columns" />
+        FROM comments c
+        LEFT JOIN users u ON c.user_id = u.user_id
+        WHERE c.user_id = #{userId,jdbcType=BIGINT} 
+          AND c.status = 1
+        ORDER BY c.created_at DESC
+    </select>
+
+</mapper> 
