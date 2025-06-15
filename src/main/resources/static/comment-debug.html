@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>评论功能调试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .debug-output {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+        }
+        
+        .comment-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background: white;
+        }
+        
+        .comment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .comment-content {
+            color: #000;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 10px 0;
+        }
+        
+        .comment-meta {
+            color: #666;
+            font-size: 12px;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+        
+        .error {
+            color: #dc3545;
+            background: #f8d7da;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            color: #155724;
+            background: #d4edda;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 评论功能调试工具</h1>
+    
+    <div class="test-section">
+        <h3>📡 API测试</h3>
+        <button class="btn" onclick="testCommentsAPI(1)">测试帖子1的评论API</button>
+        <button class="btn" onclick="testCommentsAPI(2)">测试帖子2的评论API</button>
+        <button class="btn" onclick="testCommentsAPI(3)">测试帖子3的评论API</button>
+        <div id="apiResult" class="debug-output"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🎨 评论渲染测试</h3>
+        <button class="btn" onclick="testCommentRendering()">测试评论渲染</button>
+        <div id="commentsList"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>📊 调试信息</h3>
+        <div id="debugInfo" class="debug-output">等待测试...</div>
+    </div>
+
+    <script>
+        // 测试评论API
+        async function testCommentsAPI(postId) {
+            const apiResult = document.getElementById('apiResult');
+            const debugInfo = document.getElementById('debugInfo');
+            
+            apiResult.innerHTML = '正在请求API...';
+            debugInfo.innerHTML = `开始测试帖子${postId}的评论API\n时间: ${new Date().toLocaleString()}\n`;
+            
+            try {
+                const url = `/api/posts/${postId}/comments`;
+                debugInfo.innerHTML += `请求URL: ${url}\n`;
+                
+                const response = await fetch(url, {
+                    credentials: 'include',
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                debugInfo.innerHTML += `响应状态: ${response.status}\n`;
+                debugInfo.innerHTML += `响应头: ${JSON.stringify([...response.headers.entries()], null, 2)}\n`;
+                
+                const text = await response.text();
+                debugInfo.innerHTML += `原始响应: ${text}\n`;
+                
+                let result;
+                try {
+                    result = JSON.parse(text);
+                    debugInfo.innerHTML += `解析成功!\n`;
+                } catch (parseError) {
+                    debugInfo.innerHTML += `JSON解析失败: ${parseError.message}\n`;
+                    apiResult.innerHTML = `<div class="error">JSON解析失败: ${parseError.message}</div>`;
+                    return;
+                }
+                
+                debugInfo.innerHTML += `响应结构: ${JSON.stringify(result, null, 2)}\n`;
+                
+                if (result.code === 200) {
+                    const comments = result.data || [];
+                    debugInfo.innerHTML += `评论数量: ${comments.length}\n`;
+                    
+                    if (comments.length > 0) {
+                        debugInfo.innerHTML += `第一条评论示例:\n${JSON.stringify(comments[0], null, 2)}\n`;
+                        apiResult.innerHTML = `<div class="success">成功获取${comments.length}条评论</div>`;
+                        
+                        // 显示评论列表
+                        displayComments(comments);
+                    } else {
+                        apiResult.innerHTML = `<div class="error">没有评论数据</div>`;
+                    }
+                } else {
+                    apiResult.innerHTML = `<div class="error">API返回错误: ${result.message || '未知错误'}</div>`;
+                }
+                
+            } catch (error) {
+                debugInfo.innerHTML += `请求异常: ${error.message}\n`;
+                debugInfo.innerHTML += `错误堆栈: ${error.stack}\n`;
+                apiResult.innerHTML = `<div class="error">请求失败: ${error.message}</div>`;
+            }
+        }
+        
+        // 显示评论列表
+        function displayComments(comments) {
+            const commentsList = document.getElementById('commentsList');
+            
+            if (!comments || comments.length === 0) {
+                commentsList.innerHTML = '<div class="error">没有评论数据</div>';
+                return;
+            }
+            
+            commentsList.innerHTML = comments.map((comment, index) => {
+                const userName = comment.username || '匿名用户';
+                const content = comment.content || '内容为空';
+                const timeAgo = comment.createdAt ? new Date(comment.createdAt).toLocaleString() : '未知时间';
+                
+                return `
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <span>用户: ${userName}</span>
+                            <span>ID: ${comment.commentId || 0}</span>
+                        </div>
+                        <div class="comment-content">${content}</div>
+                        <div class="comment-meta">时间: ${timeAgo}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // 测试评论渲染
+        function testCommentRendering() {
+            const testComments = [
+                {
+                    commentId: 1,
+                    username: '测试用户1',
+                    content: '这是一条测试评论，用来验证显示效果',
+                    createdAt: new Date().toISOString(),
+                    userAvatar: 'https://via.placeholder.com/32'
+                },
+                {
+                    commentId: 2,
+                    username: '测试用户2',
+                    content: '这是第二条测试评论，内容稍微长一点，看看换行效果如何',
+                    createdAt: new Date(Date.now() - 3600000).toISOString(),
+                    userAvatar: 'https://via.placeholder.com/32'
+                }
+            ];
+            
+            displayComments(testComments);
+            
+            const debugInfo = document.getElementById('debugInfo');
+            debugInfo.innerHTML = `测试评论渲染完成\n时间: ${new Date().toLocaleString()}\n测试数据: ${JSON.stringify(testComments, null, 2)}`;
+        }
+        
+        // 页面加载完成后自动测试
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('调试页面加载完成');
+        });
+    </script>
+</body>
+</html> 

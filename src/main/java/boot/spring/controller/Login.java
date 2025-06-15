@@ -32,7 +32,31 @@ public class Login {
 			httpSession.setAttribute("currentUser", username);
 			httpSession.setAttribute("userId", user.getUserId());
 			httpSession.setAttribute("userInfo", user);
-			return "rich/index";
+			
+			// 检查是否为admin用户，决定跳转页面
+			boolean isAdmin = false;
+			
+			// 方式1：通过用户名判断
+			if ("admin".equals(username)) {
+				isAdmin = true;
+			}
+			
+			// 方式2：通过用户等级判断
+			if (user.getUserLevel() != null && user.getUserLevel() >= 5) {
+				isAdmin = true;
+			}
+			
+			// 方式3：通过用户ID判断（admin通常是第一个用户）
+			if (user.getUserId() != null && user.getUserId().equals(1L)) {
+				isAdmin = true;
+			}
+			
+			// 根据用户类型跳转到不同页面
+			if (isAdmin) {
+				return "rich/index"; // admin用户跳转到包含管理面板的页面
+			} else {
+				return "user/index"; // 普通用户跳转到普通页面
+			}
 		}else
 			return "fail";
 	}

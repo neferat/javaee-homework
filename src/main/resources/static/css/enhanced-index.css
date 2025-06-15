@@ -1,4 +1,9 @@
-/* 现代化社交媒体首页样式 - 高级版本 */
+/* 
+ * 现代化社交媒体首页样式 - 高级版本
+ * 更新时间: 2024-12-19
+ * 修复内容: 评论显示问题、输入框颜色、列表高度
+ * 版本: v2.1.0
+ */
 
 /* CSS变量定义 */
 :root {
@@ -236,6 +241,81 @@ body::before {
 .logout-btn:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-medium);
+}
+
+/* Admin管理面板按钮 */
+.admin-panel-btn {
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all var(--transition-smooth);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: var(--shadow-light);
+}
+
+.admin-panel-btn:hover {
+  background: linear-gradient(135deg, #5a67d8, #6c5ce7);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+.admin-panel-btn i {
+  font-size: 0.9rem;
+}
+
+/* 管理员操作按钮 */
+.admin-actions {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.admin-action-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.admin-action-btn.delete-post-btn {
+  background: rgba(239, 68, 68, 0.9);
+}
+
+.admin-action-btn.delete-post-btn:hover {
+  background: #ef4444;
+  transform: scale(1.1);
+}
+
+.admin-action-btn.edit-post-btn {
+  background: rgba(59, 130, 246, 0.9);
+}
+
+.admin-action-btn.edit-post-btn:hover {
+  background: #3b82f6;
+  transform: scale(1.1);
+}
+
+.post-card {
+  position: relative; /* 确保管理员按钮能正确定位 */
 }
 
 /* 主内容区域 */
@@ -761,7 +841,7 @@ body::before {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-small);
-  color: var(--text-primary);
+  color: #000000 !important; /* 强制设置为黑色 */
   font-size: 1rem;
   line-height: 1.5;
   resize: vertical;
@@ -773,10 +853,11 @@ body::before {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
   background: rgba(255, 255, 255, 0.08);
+  color: #000000 !important; /* 聚焦时也保持黑色 */
 }
 
 #commentInput::placeholder {
-  color: var(--text-secondary);
+  color: #666666; /* 深灰色占位符，便于阅读 */
 }
 
 .comment-input-footer {
@@ -793,7 +874,7 @@ body::before {
 
 /* 评论列表 */
 .comments-list {
-  max-height: 20px;
+  max-height: 400px; /* 修复最大高度，原来20px太小了 */
   overflow-y: auto;
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-small);
@@ -852,10 +933,12 @@ body::before {
 }
 
 .comment-text {
-  color: var(--text-secondary);
+  color: #000000 !important; /* 强制黑色，确保评论内容可见 */
   line-height: 1.6;
   margin-bottom: 0.75rem;
   word-wrap: break-word;
+  display: block !important;
+  visibility: visible !important;
 }
 
 .comment-actions {
@@ -1051,7 +1134,7 @@ i.fas::before, i.fa::before {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.05);
-  color: var(--text-primary);
+  color: #000000 !important; /* 强制设置为黑色 */
   font-size: 0.9rem;
   line-height: 1.4;
   resize: vertical;
@@ -1064,11 +1147,12 @@ i.fas::before, i.fa::before {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.15);
   background: rgba(255, 255, 255, 0.08);
+  color: #000000 !important; /* 聚焦时也保持黑色 */
 }
 
 .modal-comment-textarea::placeholder {
-  color: var(--text-secondary);
-  opacity: 0.6;
+  color: #666666; /* 深灰色占位符，便于阅读 */
+  opacity: 0.8;
   font-style: italic;
 }
 
@@ -1241,12 +1325,14 @@ i.fas::before, i.fa::before {
 }
 
 .modal-comment-text {
-  color: var(--text-primary);
+  color: #000000 !important; /* 确保评论内容为黑色 */
   line-height: 1.4;
   font-size: 0.9rem;
   word-wrap: break-word;
   white-space: pre-wrap;
   margin: 0;
+  display: block !important; /* 确保评论内容显示 */
+  visibility: visible !important; /* 确保可见 */
 }
 
 .no-comments {

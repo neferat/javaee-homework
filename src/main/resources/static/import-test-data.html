@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导入测试数据</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+            font-size: 16px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .result {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .code-block {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #e9ecef;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 导入测试数据</h1>
+        
+        <p>此页面将通过API创建测试用户和评论数据，以便测试评论功能。</p>
+        
+        <div>
+            <button class="btn" onclick="createTestUsers()">1. 创建测试用户</button>
+            <button class="btn" onclick="createTestComments()">2. 创建测试评论</button>
+            <button class="btn" onclick="testCommentsAPI()">3. 测试评论API</button>
+        </div>
+        
+        <div id="result"></div>
+        
+        <h3>SQL测试脚本（如果API不工作）</h3>
+        <div class="code-block">-- 创建测试用户
+INSERT IGNORE INTO users (user_id, username, password, email, avatar_url, created_at, updated_at) VALUES
+(1, '张三', '123456', 'zhangsan@example.com', 'https://via.placeholder.com/32', NOW(), NOW()),
+(2, '李四', '123456', 'lisi@example.com', 'https://via.placeholder.com/32', NOW(), NOW()),
+(3, '王五', '123456', 'wangwu@example.com', 'https://via.placeholder.com/32', NOW(), NOW());
+
+-- 创建测试评论
+INSERT IGNORE INTO comments (post_id, user_id, content, created_at, updated_at, status) VALUES
+(1, 1, '这是一个很好的帖子！', NOW() - INTERVAL 2 HOUR, NOW() - INTERVAL 2 HOUR, 1),
+(1, 2, '我也这么认为，内容很有价值。', NOW() - INTERVAL 1 HOUR, NOW() - INTERVAL 1 HOUR, 1),
+(1, 3, '学到了很多，感谢分享！', NOW() - INTERVAL 30 MINUTE, NOW() - INTERVAL 30 MINUTE, 1),
+(2, 1, '支持楼主的观点！', NOW() - INTERVAL 3 HOUR, NOW() - INTERVAL 3 HOUR, 1),
+(2, 2, '非常有启发性的内容', NOW() - INTERVAL 2 HOUR, NOW() - INTERVAL 2 HOUR, 1);</div>
+    </div>
+
+    <script>
+        function showResult(message, isSuccess = true) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'result ' + (isSuccess ? 'success' : 'error');
+            resultDiv.textContent = message;
+        }
+
+        async function createTestUsers() {
+            showResult('正在创建测试用户...');
+            
+            const users = [
+                { username: '张三', password: '123456', email: 'zhangsan@example.com' },
+                { username: '李四', password: '123456', email: 'lisi@example.com' },
+                { username: '王五', password: '123456', email: 'wangwu@example.com' }
+            ];
+            
+            try {
+                let results = [];
+                for (let user of users) {
+                    const response = await fetch('/api/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(user)
+                    });
+                    
+                    const result = await response.json();
+                    results.push(`用户 ${user.username}: ${result.message || result.code}`);
+                }
+                
+                showResult('用户创建结果:\n' + results.join('\n'));
+            } catch (error) {
+                showResult('创建用户失败: ' + error.message, false);
+            }
+        }
+
+        async function createTestComments() {
+            showResult('正在创建测试评论...');
+            
+            const comments = [
+                { postId: 1, content: '这是一个很好的帖子！' },
+                { postId: 1, content: '我也这么认为，内容很有价值。' },
+                { postId: 1, content: '学到了很多，感谢分享！' },
+                { postId: 2, content: '支持楼主的观点！' },
+                { postId: 2, content: '非常有启发性的内容' }
+            ];
+            
+            try {
+                let results = [];
+                for (let comment of comments) {
+                    const response = await fetch('/api/comments', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(comment),
+                        credentials: 'include'
+                    });
+                    
+                    const result = await response.json();
+                    results.push(`帖子${comment.postId}评论: ${result.message || result.code}`);
+                }
+                
+                showResult('评论创建结果:\n' + results.join('\n'));
+            } catch (error) {
+                showResult('创建评论失败: ' + error.message, false);
+            }
+        }
+
+        async function testCommentsAPI() {
+            showResult('正在测试评论API...');
+            
+            try {
+                const response = await fetch('/api/posts/1/comments', {
+                    credentials: 'include'
+                });
+                
+                const result = await response.json();
+                
+                if (result.code === 200) {
+                    const comments = result.data || [];
+                    showResult(`评论API测试成功!\n获取到 ${comments.length} 条评论\n\n示例数据:\n${JSON.stringify(comments[0] || {}, null, 2)}`);
+                } else {
+                    showResult(`API返回错误: ${result.message || result.code}`, false);
+                }
+            } catch (error) {
+                showResult('API测试失败: ' + error.message, false);
+            }
+        }
+    </script>
+</body>
+</html> 

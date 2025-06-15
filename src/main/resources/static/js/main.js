@@ -973,17 +973,27 @@ document.addEventListener('DOMContentLoaded', () => {
 // 加载模态框中的评论
 async function loadModalComments(postId) {
     try {
+        console.log('=== 开始加载评论 ===');
+        console.log('帖子ID:', postId);
+        
         const commentsLoadingDiv = document.querySelector('.comments-loading');
         const commentsListDiv = document.getElementById('modalCommentsList');
+        
+        console.log('找到加载指示器:', commentsLoadingDiv !== null);
+        console.log('找到评论列表容器:', commentsListDiv !== null);
         
         if (commentsLoadingDiv) {
             commentsLoadingDiv.style.display = 'block';
         }
         
+        console.log('发送API请求...');
         const response = await fetch(`/api/posts/${postId}/comments`, {
             credentials: 'include'
         });
+        
+        console.log('API响应状态:', response.status);
         const result = await response.json();
+        console.log('API响应数据:', result);
         
         if (commentsLoadingDiv) {
             commentsLoadingDiv.style.display = 'none';
@@ -991,14 +1001,25 @@ async function loadModalComments(postId) {
         
         if (result.code === 200) {
             const comments = result.data || [];
+            console.log('评论数据:', comments);
+            console.log('评论数量:', comments.length);
+            
+            if (comments.length > 0) {
+                console.log('第一条评论样例:', comments[0]);
+            }
+            
             renderModalComments(comments, commentsListDiv);
         } else {
+            console.error('API返回错误:', result.message || result);
             if (commentsListDiv) {
-                commentsListDiv.innerHTML = '<div class="no-comments">加载评论失败</div>';
+                commentsListDiv.innerHTML = '<div class="no-comments">加载评论失败: ' + (result.message || '未知错误') + '</div>';
             }
         }
     } catch (error) {
-        console.error('Error loading modal comments:', error);
+        console.error('=== 评论加载异常 ===');
+        console.error('错误信息:', error);
+        console.error('错误堆栈:', error.stack);
+        
         const commentsLoadingDiv = document.querySelector('.comments-loading');
         const commentsListDiv = document.getElementById('modalCommentsList');
         
@@ -1006,36 +1027,80 @@ async function loadModalComments(postId) {
             commentsLoadingDiv.style.display = 'none';
         }
         if (commentsListDiv) {
-            commentsListDiv.innerHTML = '<div class="no-comments">加载评论失败</div>';
+            commentsListDiv.innerHTML = '<div class="no-comments">网络错误，无法加载评论</div>';
         }
     }
 }
 
 // 渲染模态框中的评论
 function renderModalComments(comments, container) {
-    if (!container) return;
+    console.log('=== 渲染评论列表 ===');
+    console.log('容器元素:', container);
+    console.log('评论数据:', comments);
+    
+    if (!container) {
+        console.error('评论容器不存在！');
+        return;
+    }
     
     if (!comments || comments.length === 0) {
+        console.log('没有评论数据，显示空状态');
         container.innerHTML = '<div class="no-comments">暂无评论，快来发表第一条评论吧！</div>';
         return;
     }
     
-    container.innerHTML = comments.map(comment => createModalCommentElement(comment)).join('');
+    console.log(`开始渲染${comments.length}条评论`);
+    
+    try {
+        const commentsHtml = comments.map((comment, index) => {
+            console.log(`渲染第${index + 1}条评论:`, comment);
+            return createModalCommentElement(comment);
+        }).join('');
+        
+        console.log('生成的HTML长度:', commentsHtml.length);
+        container.innerHTML = commentsHtml;
+        console.log('评论渲染完成');
+        
+        // 验证渲染结果
+        const renderedItems = container.querySelectorAll('.modal-comment-item');
+        console.log('实际渲染的评论元素数量:', renderedItems.length);
+        
+    } catch (error) {
+        console.error('评论渲染异常:', error);
+        container.innerHTML = '<div class="no-comments">评论渲染失败，请重试</div>';
+    }
 }
 
 // 创建模态框中的评论元素
 function createModalCommentElement(comment) {
-    console.log('Creating comment element for:', comment);
+    console.log('=== 创建评论元素 ===');
+    console.log('评论数据:', comment);
     
-    const timeAgo = getTimeAgo(new Date(comment.createdAt));
+    // 安全处理时间
+    let timeAgo = '未知时间';
+    try {
+        if (comment.createdAt) {
+            timeAgo = getTimeAgo(new Date(comment.createdAt));
+        }
+    } catch (error) {
+        console.warn('时间处理失败:', error);
+    }
+    
     const canDelete = canDeleteComment(comment);
     const userName = comment.username || '匿名用户';
     const userAvatar = comment.userAvatar || 'https://via.placeholder.com/32';
+    const content = comment.content || '内容为空';
+    const commentId = comment.commentId || 0;
     
-    console.log('User info - Name:', userName, 'Avatar:', userAvatar);
+    console.log('处理后的数据:');
+    console.log('- 用户名:', userName);
+    console.log('- 头像:', userAvatar);
+    console.log('- 内容:', content);
+    console.log('- 时间:', timeAgo);
+    console.log('- 可删除:', canDelete);
     
-    return `
-        <div class="modal-comment-item" data-comment-id="${comment.commentId}">
+    const html = `
+        <div class="modal-comment-item" data-comment-id="${commentId}">
             <div class="modal-comment-avatar">
                 <img src="${userAvatar}" alt="${userName}" onerror="this.src='https://via.placeholder.com/32'">
             </div>
@@ -1043,12 +1108,15 @@ function createModalCommentElement(comment) {
                 <div class="modal-comment-header">
                     <span class="modal-comment-author">${userName}</span>
                     <span class="modal-comment-time">${timeAgo}</span>
-                    ${canDelete ? `<button class="modal-comment-delete" onclick="deleteModalComment(${comment.commentId})">删除</button>` : ''}
+                    ${canDelete ? `<button class="modal-comment-delete" onclick="deleteModalComment(${commentId})">删除</button>` : ''}
                 </div>
-                <div class="modal-comment-text">${comment.content || ''}</div>
+                <div class="modal-comment-text">${content}</div>
             </div>
         </div>
     `;
+    
+    console.log('生成的HTML片段长度:', html.length);
+    return html;
 }
 
 // 提交模态框中的评论

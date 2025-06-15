@@ -89,4 +89,23 @@ public class PostServiceImpl implements PostService {
     public List<Post> getHotPosts(Integer limit) {
         return postMapper.getHotPosts(limit);
     }
+    
+    @Override
+    public List<Post> getPagePosts(int pageNum, int pageSize) {
+        // 简单分页实现，类似于UserServiceImpl中的实现
+        List<Post> allPosts = postMapper.getAllPosts();
+        int offset = (pageNum - 1) * pageSize;
+        int endIndex = Math.min(offset + pageSize, allPosts.size());
+        
+        if (offset >= allPosts.size()) {
+            return new java.util.ArrayList<>();
+        }
+        
+        return allPosts.subList(offset, endIndex);
+    }
+    
+    @Override
+    public int getPostCount() {
+        return postMapper.getAllPosts().size();
+    }
 } 

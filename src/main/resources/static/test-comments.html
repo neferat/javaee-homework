@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>评论功能测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .comment-item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .debug-info {
+            background: #e8f4fd;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #results {
+            border: 1px solid #ccc;
+            padding: 15px;
+            background: #fafafa;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>评论功能测试页面</h1>
+    
+    <div class="test-section">
+        <h2>API 测试</h2>
+        <p>测试不同帖子的评论加载情况</p>
+        
+        <button onclick="testComments(1)">测试帖子1的评论</button>
+        <button onclick="testComments(2)">测试帖子2的评论</button>
+        <button onclick="testComments(3)">测试帖子3的评论</button>
+        <button onclick="testComments(99)">测试不存在的帖子</button>
+        
+        <h3>测试结果:</h3>
+        <div id="results">点击上面的按钮开始测试...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>数据库查询测试</h2>
+        <button onclick="testDatabase()">查询数据库状态</button>
+        <button onclick="createTestComment()">创建测试评论</button>
+    </div>
+
+    <script>
+        // 显示结果的函数
+        function showResult(message) {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            results.textContent = `[${timestamp}] ${message}\n\n` + results.textContent;
+        }
+
+        // 测试评论加载
+        async function testComments(postId) {
+            try {
+                showResult(`开始测试帖子 ${postId} 的评论...`);
+                
+                const response = await fetch(`/api/posts/${postId}/comments`, {
+                    credentials: 'include'
+                });
+                
+                showResult(`API响应状态: ${response.status}`);
+                
+                const result = await response.json();
+                showResult(`API响应数据: ${JSON.stringify(result, null, 2)}`);
+                
+                if (result.code === 200) {
+                    const comments = result.data || [];
+                    showResult(`成功获取 ${comments.length} 条评论`);
+                    
+                    comments.forEach((comment, index) => {
+                        showResult(`评论 ${index + 1}: 
+                          - ID: ${comment.commentId}
+                          - 内容: ${comment.content}
+                          - 用户: ${comment.username || '未知用户'}
+                          - 头像: ${comment.userAvatar || '无头像'}
+                          - 时间: ${comment.createdAt}`);
+                    });
+                } else {
+                    showResult(`获取评论失败: ${result.message || '未知错误'}`);
+                }
+                
+            } catch (error) {
+                showResult(`请求异常: ${error.message}`);
+                console.error('测试错误:', error);
+            }
+        }
+
+        // 测试数据库状态
+        async function testDatabase() {
+            try {
+                showResult('测试数据库连接和数据...');
+                
+                // 测试帖子列表
+                const postsResponse = await fetch('/api/posts', {
+                    credentials: 'include'
+                });
+                const postsResult = await postsResponse.json();
+                showResult(`帖子数据: ${postsResult.code === 200 ? '获取成功，共' + postsResult.data.length + '条' : '获取失败'}`);
+                
+                // 测试用户接口（如果存在）
+                try {
+                    const userResponse = await fetch('/api/users/1', {
+                        credentials: 'include'
+                    });
+                    if (userResponse.status === 200) {
+                        const userResult = await userResponse.json();
+                        showResult(`用户数据测试: ${userResult.code === 200 ? '成功' : '失败'}`);
+                    }
+                } catch (e) {
+                    showResult('用户接口测试: 接口不存在或无权限');
+                }
+                
+            } catch (error) {
+                showResult(`数据库测试异常: ${error.message}`);
+            }
+        }
+
+        // 创建测试评论
+        async function createTestComment() {
+            try {
+                showResult('创建测试评论...');
+                
+                const response = await fetch('/api/comments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        postId: 1,
+                        content: '这是一条测试评论 - ' + new Date().toLocaleString()
+                    }),
+                    credentials: 'include'
+                });
+                
+                const result = await response.json();
+                showResult(`创建评论结果: ${JSON.stringify(result, null, 2)}`);
+                
+                if (result.code === 200) {
+                    showResult('测试评论创建成功！可以重新测试帖子1的评论。');
+                }
+                
+            } catch (error) {
+                showResult(`创建评论异常: ${error.message}`);
+            }
+        }
+
+        // 页面加载时自动运行基本测试
+        window.addEventListener('load', () => {
+            showResult('页面加载完成，可以开始测试...');
+            showResult('建议先测试帖子1的评论，看看是否有数据。');
+        });
+    </script>
+</body>
+</html> 

@@ -72,4 +72,18 @@ public interface PostService {
      * @return 热门帖子列表
      */
     List<Post> getHotPosts(Integer limit);
+    
+    /**
+     * 分页获取帖子
+     * @param pageNum 页码
+     * @param pageSize 每页大小
+     * @return 帖子列表
+     */
+    List<Post> getPagePosts(int pageNum, int pageSize);
+    
+    /**
+     * 获取帖子总数
+     * @return 帖子总数
+     */
+    int getPostCount();
 } 

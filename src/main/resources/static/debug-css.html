@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS加载测试</title>
+    <link rel="stylesheet" href="/css/enhanced-index.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-item {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border-color: #c3e6cb;
+        }
+        
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 CSS加载调试</h1>
+    
+    <div class="test-section">
+        <h3>CSS样式测试</h3>
+        
+        <!-- 测试modal-comment-text样式 -->
+        <div class="test-item">
+            <h4>测试 .modal-comment-text 样式：</h4>
+            <div class="modal-comment-text">
+                这是一段测试文本，用来验证 modal-comment-text 样式是否生效。
+                如果这段文字是黑色的，说明CSS样式已经正确加载。
+            </div>
+        </div>
+        
+        <!-- 测试modal-comment-textarea样式 -->
+        <div class="test-item">
+            <h4>测试 .modal-comment-textarea 样式：</h4>
+            <textarea class="modal-comment-textarea" placeholder="输入测试内容...">测试文本内容</textarea>
+        </div>
+        
+        <!-- 测试comments-list样式 -->
+        <div class="test-item">
+            <h4>测试 .comments-list 样式：</h4>
+            <div class="comments-list">
+                <div class="comment-item">
+                    <div class="comment-content">
+                        <div class="comment-text">测试评论内容 1</div>
+                    </div>
+                </div>
+                <div class="comment-item">
+                    <div class="comment-content">
+                        <div class="comment-text">测试评论内容 2</div>
+                    </div>
+                </div>
+                <div class="comment-item">
+                    <div class="comment-content">
+                        <div class="comment-text">测试评论内容 3</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h3>CSS加载检测</h3>
+        <div id="cssTest"></div>
+    </div>
+
+    <script>
+        // 检测CSS是否加载
+        function testCSSLoading() {
+            const testDiv = document.getElementById('cssTest');
+            
+            // 创建测试元素
+            const testElement = document.createElement('div');
+            testElement.className = 'modal-comment-text';
+            testElement.style.position = 'absolute';
+            testElement.style.left = '-9999px';
+            testElement.textContent = 'test';
+            document.body.appendChild(testElement);
+            
+            // 获取计算样式
+            const computedStyle = window.getComputedStyle(testElement);
+            const color = computedStyle.color;
+            const display = computedStyle.display;
+            const visibility = computedStyle.visibility;
+            
+            // 移除测试元素
+            document.body.removeChild(testElement);
+            
+            // 显示结果
+            let results = [];
+            
+            if (color === 'rgb(0, 0, 0)' || color === '#000000') {
+                results.push('<div class="test-item success">✅ modal-comment-text 颜色正确 (black)</div>');
+            } else {
+                results.push(`<div class="test-item error">❌ modal-comment-text 颜色错误: ${color}</div>`);
+            }
+            
+            if (display === 'block') {
+                results.push('<div class="test-item success">✅ modal-comment-text display正确 (block)</div>');
+            } else {
+                results.push(`<div class="test-item error">❌ modal-comment-text display错误: ${display}</div>`);
+            }
+            
+            if (visibility === 'visible') {
+                results.push('<div class="test-item success">✅ modal-comment-text visibility正确 (visible)</div>');
+            } else {
+                results.push(`<div class="test-item error">❌ modal-comment-text visibility错误: ${visibility}</div>`);
+            }
+            
+            testDiv.innerHTML = results.join('');
+        }
+        
+        // 检测CSS文件是否加载
+        function checkCSSFile() {
+            const links = document.getElementsByTagName('link');
+            let cssLoaded = false;
+            
+            for (let link of links) {
+                if (link.href && link.href.includes('enhanced-index.css')) {
+                    cssLoaded = true;
+                    console.log('CSS文件链接:', link.href);
+                    console.log('CSS文件状态:', link.sheet ? '已加载' : '未加载');
+                    break;
+                }
+            }
+            
+            if (!cssLoaded) {
+                document.getElementById('cssTest').innerHTML += 
+                    '<div class="test-item error">❌ enhanced-index.css 文件未找到</div>';
+            }
+        }
+        
+        // 页面加载完成后执行测试
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                testCSSLoading();
+                checkCSSFile();
+            }, 100);
+        });
+        
+        // 添加强制刷新CSS的功能
+        function forceCSSRefresh() {
+            const links = document.getElementsByTagName('link');
+            for (let link of links) {
+                if (link.href && link.href.includes('enhanced-index.css')) {
+                    const href = link.href;
+                    link.href = href + '?v=' + new Date().getTime();
+                    console.log('强制刷新CSS:', link.href);
+                    
+                    // 等待CSS重新加载后重新测试
+                    setTimeout(() => {
+                        testCSSLoading();
+                    }, 500);
+                    break;
+                }
+            }
+        }
+        
+        console.log('CSS调试页面加载完成');
+    </script>
+    
+    <div class="test-section">
+        <button onclick="forceCSSRefresh()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            强制刷新CSS缓存
+        </button>
+    </div>
+</body>
+</html> 
