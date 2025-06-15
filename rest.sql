@@ -1,17 +1,17 @@
 /*
- Navicat Premium Data Transfer
+ Navicat Premium Dump SQL
 
- Source Server         : 5.7
+ Source Server         : mysql
  Source Server Type    : MySQL
- Source Server Version : 50731
- Source Host           : localhost:3305
+ Source Server Version : 80042 (8.0.42)
+ Source Host           : localhost:3306
  Source Schema         : rest
 
  Target Server Type    : MySQL
- Target Server Version : 50731
+ Target Server Version : 80042 (8.0.42)
  File Encoding         : 65001
 
- Date: 16/10/2021 09:59:58
+ Date: 16/06/2025 01:19:40
 */
 
 SET NAMES utf8mb4;
@@ -22,11 +22,11 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ----------------------------
 DROP TABLE IF EXISTS `actor`;
 CREATE TABLE `actor`  (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(45) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `age` int(11) NULL DEFAULT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
+  `name` varchar(45) CHARACTER SET utf8mb3 COLLATE utf8mb3_general_ci NULL DEFAULT NULL,
+  `age` int NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 15 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of actor
@@ -47,12 +47,12 @@ INSERT INTO `actor` VALUES (14, 'ee', 11);
 -- ----------------------------
 DROP TABLE IF EXISTS `file`;
 CREATE TABLE `file`  (
-  `fileid` int(11) NOT NULL AUTO_INCREMENT,
-  `filename` varchar(45) CHARACTER SET utf8 COLLATE utf8_bin NULL DEFAULT NULL,
-  `realfilename` varchar(45) CHARACTER SET utf8 COLLATE utf8_bin NULL DEFAULT NULL,
-  `bz` varchar(45) CHARACTER SET utf8 COLLATE utf8_bin NULL DEFAULT NULL,
+  `fileid` int NOT NULL AUTO_INCREMENT,
+  `filename` varchar(45) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL,
+  `realfilename` varchar(45) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL,
+  `bz` varchar(45) CHARACTER SET utf8mb3 COLLATE utf8mb3_bin NULL DEFAULT NULL,
   PRIMARY KEY (`fileid`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8 COLLATE = utf8_bin ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB AUTO_INCREMENT = 4 CHARACTER SET = utf8mb3 COLLATE = utf8mb3_bin ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of file
@@ -66,13 +66,13 @@ INSERT INTO `file` VALUES (3, '微信截图_20200909170817.png', '1599724126.png
 -- ----------------------------
 DROP TABLE IF EXISTS `item`;
 CREATE TABLE `item`  (
-  `id` bigint(20) NOT NULL,
-  `gmt_create` datetime(0) NULL DEFAULT NULL,
-  `gmt_update` datetime(0) NULL DEFAULT NULL,
-  `number` int(11) NULL DEFAULT NULL,
-  `version` int(11) NULL DEFAULT NULL,
+  `id` bigint NOT NULL,
+  `gmt_create` datetime NULL DEFAULT NULL,
+  `gmt_update` datetime NULL DEFAULT NULL,
+  `number` int NULL DEFAULT NULL,
+  `version` int NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+) ENGINE = InnoDB CHARACTER SET = utf8mb3 COLLATE = utf8mb3_general_ci ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of item
