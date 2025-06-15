@@ -83,5 +83,16 @@
            OR p.description LIKE CONCAT('%', #{query,jdbcType=VARCHAR}, '%'))
         ORDER BY p.created_at DESC
     </select>
+    
+    <!-- 获取热门帖子（按点赞数排序） -->
+    <select id="getHotPosts" parameterType="Integer" resultMap="BaseResultMap">
+        SELECT 
+        <include refid="Post_With_User_Columns" />
+        FROM posts p
+        LEFT JOIN users u ON p.user_id = u.user_id
+        WHERE p.likes > 0
+        ORDER BY p.likes DESC, p.created_at DESC
+        LIMIT #{limit,jdbcType=INTEGER}
+    </select>
 
 </mapper> 

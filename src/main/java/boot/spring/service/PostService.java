@@ -65,4 +65,11 @@ public interface PostService {
      * @return 匹配的帖子列表
      */
     List<Post> searchPosts(String query);
+    
+    /**
+     * 获取热门帖子（按点赞数排序）
+     * @param limit 限制数量
+     * @return 热门帖子列表
+     */
+    List<Post> getHotPosts(Integer limit);
 } 

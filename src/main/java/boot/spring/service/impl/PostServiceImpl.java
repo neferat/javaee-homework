@@ -84,4 +84,9 @@ public class PostServiceImpl implements PostService {
     public List<Post> searchPosts(String query) {
         return postMapper.searchPosts(query);
     }
+    
+    @Override
+    public List<Post> getHotPosts(Integer limit) {
+        return postMapper.getHotPosts(limit);
+    }
 } 

@@ -606,6 +606,37 @@ public class PostController {
     }
     
     /**
+     * 获取热门帖子（按点赞数排序）
+     */
+    @GetMapping("/hot")
+    public ResponseResult<List<Post>> getHotPosts(@RequestParam(value = "limit", defaultValue = "10") Integer limit, 
+                                                  HttpSession session) {
+        try {
+            LOG.info("获取热门帖子，限制数量: {}", limit);
+            
+            // 限制查询数量，防止过大的请求
+            if (limit > 50) {
+                limit = 50;
+            }
+            if (limit < 1) {
+                limit = 10;
+            }
+            
+            List<Post> hotPosts = postService.getHotPosts(limit);
+            
+            // 为每个帖子添加用户信息和点赞状态
+            tryAddUserInfoToPosts(hotPosts);
+            addLikeStatusToPosts(hotPosts, session);
+            
+            LOG.info("获取到{}条热门帖子", hotPosts.size());
+            return ResponseResult.success(hotPosts);
+        } catch (Exception e) {
+            LOG.error("获取热门帖子失败", e);
+            return ResponseResult.error("获取热门帖子失败：" + e.getMessage());
+        }
+    }
+    
+    /**
      * 尝试为帖子列表添加用户信息
      */
     private void tryAddUserInfoToPosts(List<Post> posts) {

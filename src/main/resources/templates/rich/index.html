@@ -7,6 +7,7 @@
   <title>社交媒体首页</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="/css/userProfile.css">
+  <link rel="stylesheet" href="/css/enhanced-index.css">
   <style>
     * {
       margin: 0;
@@ -125,13 +126,13 @@
     }
 
     .current-user-avatar {
-      width: 40px;
-      height: 40px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
       object-fit: cover;
       cursor: pointer;
       transition: transform 0.2s;
-      border: 2px solid transparent;
+      border: 1px solid transparent;
     }
 
     .current-user-avatar:hover {
@@ -190,9 +191,12 @@
     }
 
     .main-content {
-      max-width: 1200px;
+      max-width: 1400px;
       margin: 80px auto 2rem;
       padding: 0 1rem;
+      display: flex;
+      gap: 2rem;
+      align-items: flex-start;
     }
 
     .posts-container {
@@ -282,8 +286,8 @@
     }
     
     .user-avatar {
-      width: 32px;
-      height: 32px;
+      width: 20px;
+      height: 20px;
       border-radius: 50%;
       object-fit: cover;
     }
@@ -352,8 +356,9 @@
     .modal.active {
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       padding: 2rem;
+      padding-top: 5vh;
       opacity: 1;
       background: rgba(0,0,0,0.7);
       pointer-events: auto;
@@ -363,16 +368,19 @@
       background: white;
       border-radius: 12px;
       max-width: 900px;
+      max-height: 90vh;
       width: 90%;
       position: relative;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      display: flex;
-      flex-direction: column;
+      display: block;
       transform: translateY(30px) scale(0.95);
       opacity: 0;
       transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
                   opacity 0.3s ease;
+      scrollbar-width: thin;
+      scrollbar-color: #1877f2 transparent;
     }
     
     .modal.active .modal-content {
@@ -404,6 +412,51 @@
       transform: scale(1.1);
     }
 
+    /* 自定义滚动条样式 */
+    .modal-content::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .modal-content::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 4px;
+    }
+
+    .modal-content::-webkit-scrollbar-thumb {
+      background: #1877f2;
+      border-radius: 4px;
+      transition: background 0.3s ease;
+    }
+
+    .modal-content::-webkit-scrollbar-thumb:hover {
+      background: #166fe5;
+    }
+
+    /* 确保模态框内容可以滚动 */
+    .modal-content {
+      min-height: 200px !important; /* 确保有最小高度 */
+      overflow-y: auto !important; /* 强制启用垂直滚动 */
+      overflow-x: hidden !important; /* 隐藏水平滚动 */
+    }
+
+    /* 移动端滚动优化 */
+    @media (max-width: 768px) {
+      .modal {
+        padding: 1rem 0;
+      }
+      
+      .modal.active {
+        padding: 1rem;
+        padding-top: 2vh;
+      }
+      
+      .modal-content {
+        max-height: 95vh;
+        width: 95%;
+        -webkit-overflow-scrolling: touch; /* iOS 平滑滚动 */
+      }
+    }
+
     .modal-header {
       display: flex;
       align-items: center;
@@ -421,8 +474,8 @@
     }
     
     .modal-user img {
-      width: 40px;
-      height: 40px;
+      width: 28px;
+      height: 28px;
       border-radius: 50%;
       object-fit: cover;
     }
@@ -709,6 +762,235 @@
       color: #777;
       font-size: 0.9rem;
     }
+
+    /* 热点栏目样式 */
+    .hot-posts-sidebar {
+      width: 300px;
+      min-width: 300px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 100px;
+      max-height: calc(100vh - 120px);
+      overflow: hidden;
+      transition: all 0.3s ease;
+      z-index: 100;
+    }
+
+    .hot-posts-sidebar.collapsed {
+      transform: translateX(-100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #f0f2f5;
+      background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+      color: white;
+    }
+
+    .sidebar-header h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .sidebar-toggle {
+      background: rgba(255, 255, 255, 0.2);
+      border: none;
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sidebar-toggle:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.1);
+    }
+
+    .sidebar-content {
+      height: calc(100% - 60px);
+      overflow-y: auto;
+    }
+
+    .hot-posts-list {
+      padding: 0;
+    }
+
+    .loading-hot-posts {
+      text-align: center;
+      padding: 2rem;
+      color: #666;
+      font-style: italic;
+    }
+
+    .hot-post-item {
+      display: flex;
+      gap: 0.75rem;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #f0f2f5;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .hot-post-item:hover {
+      background: #f8f9fa;
+    }
+
+    .hot-post-item:last-child {
+      border-bottom: none;
+    }
+
+    .hot-post-rank {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: white;
+      flex-shrink: 0;
+      margin-top: 0.25rem;
+    }
+
+    .hot-post-rank.rank-1 {
+      background: linear-gradient(135deg, #ffd700, #ffb347);
+    }
+
+    .hot-post-rank.rank-2 {
+      background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+    }
+
+    .hot-post-rank.rank-3 {
+      background: linear-gradient(135deg, #cd7f32, #b8860b);
+    }
+
+    .hot-post-rank.rank-other {
+      background: linear-gradient(135deg, #6c757d, #5a6268);
+    }
+
+    .hot-post-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .hot-post-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #1c1e21;
+      margin-bottom: 0.25rem;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .hot-post-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      color: #65676b;
+    }
+
+    .hot-post-likes {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      color: #e41e3f;
+      font-weight: 500;
+    }
+
+    .hot-post-category {
+      padding: 2px 6px;
+      background: #f0f2f5;
+      border-radius: 8px;
+      font-size: 0.7rem;
+    }
+
+    .content-wrapper {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .sidebar-open-btn {
+      position: fixed;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+      color: white;
+      border: none;
+      padding: 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+      transition: all 0.3s ease;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: 0.8rem;
+      min-width: 50px;
+    }
+
+    .sidebar-open-btn:hover {
+      transform: translateY(-50%) scale(1.05);
+      box-shadow: 0 6px 16px rgba(255, 107, 107, 0.4);
+    }
+
+    .sidebar-open-btn i {
+      font-size: 1.2rem;
+    }
+
+    /* 响应式调整 */
+    @media (max-width: 1024px) {
+      .hot-posts-sidebar {
+        position: fixed;
+        left: 0;
+        top: 80px;
+        height: calc(100vh - 80px);
+        max-height: none;
+        z-index: 1500;
+        box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      }
+
+      .main-content {
+        flex-direction: column;
+      }
+
+      .content-wrapper {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .hot-posts-sidebar {
+        width: 280px;
+      }
+
+      .sidebar-open-btn {
+        left: 0.5rem;
+        padding: 0.5rem;
+        font-size: 0.7rem;
+      }
+    }
   </style>
 </head>
 
@@ -740,7 +1022,31 @@
   </nav>
 
   <main class="main-content">
-    <div class="posts-container"></div>
+    <!-- 左侧热点栏目 -->
+    <aside class="hot-posts-sidebar" id="hotPostsSidebar">
+      <div class="sidebar-header">
+        <h3>🔥 热门帖子</h3>
+        <button class="sidebar-toggle" id="sidebarToggle">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="sidebar-content">
+        <div class="hot-posts-list" id="hotPostsList">
+          <div class="loading-hot-posts">加载中...</div>
+        </div>
+      </div>
+    </aside>
+    
+    <!-- 主要内容区域 -->
+    <div class="content-wrapper">
+      <div class="posts-container"></div>
+    </div>
+    
+    <!-- 侧边栏切换按钮（当侧边栏关闭时显示） -->
+    <button class="sidebar-open-btn" id="sidebarOpenBtn" style="display: none;">
+      <i class="fas fa-fire"></i>
+      <span>热门</span>
+    </button>
   </main>
 
   <!-- 帖子详情模态框 -->

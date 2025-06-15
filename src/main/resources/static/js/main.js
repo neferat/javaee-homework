@@ -184,6 +184,8 @@ async function showPostDetails(post) {
                     <span class="post-category"><i class="fas fa-tag"></i> ${post.category || '未分类'}</span>
                 </div>
                 <p>${post.description || '暂无描述'}</p>
+                
+                
                 <div class="modal-stats">
                     <div class="modal-actions">
                         <button class="modal-action-btn like-btn ${post.isLiked ? 'liked' : ''}" data-post-id="${post.postId}">
@@ -275,6 +277,27 @@ async function showPostDetails(post) {
         
         // 显示模态框
         openModal(modal);
+        
+        // 调试：检查模态框内容高度和滚动功能
+        setTimeout(() => {
+            const modalContent = modal.querySelector('.modal-content');
+            console.log('Modal content height:', modalContent.scrollHeight);
+            console.log('Modal content client height:', modalContent.clientHeight);
+            console.log('Modal content max-height:', getComputedStyle(modalContent).maxHeight);
+            console.log('Modal content overflow-y:', getComputedStyle(modalContent).overflowY);
+            console.log('Can scroll:', modalContent.scrollHeight > modalContent.clientHeight);
+            
+            // 测试滚动功能
+            if (modalContent.scrollHeight > modalContent.clientHeight) {
+                console.log('Content is scrollable - testing scroll...');
+                modalContent.scrollTop = 100;
+                setTimeout(() => {
+                    console.log('Scroll position after test:', modalContent.scrollTop);
+                }, 100);
+            } else {
+                console.log('Content is not scrollable - adding more content for testing');
+            }
+        }, 500);
     } catch (error) {
         console.error('Error showing post details:', error);
         alert(`加载帖子详情失败: ${error.message}`);
@@ -604,6 +627,8 @@ categoryButtons.forEach(button => {
 function closeModal(modalElement) {
     // 移除active类，开始淡出效果
     modalElement.classList.remove('active');
+    // 恢复body的滚动
+    document.body.style.overflow = '';
     // 等待过渡效果完成后隐藏元素
     setTimeout(() => {
         modalElement.style.display = 'none';
@@ -644,12 +669,19 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPosts();
     // 测试上传目录配置
     testUploadDirectory();
+    
+    // 初始化热点栏目
+    initSidebar();
+    loadHotPosts();
+    startHotPostsRefresh();
 });
 
 // 显示模态框
 function openModal(modalElement) {
     // 设置为flex显示
     modalElement.style.display = 'flex';
+    // 确保body不会滚动，但模态框内容可以滚动
+    document.body.style.overflow = 'hidden';
     // 强制浏览器重绘以确保过渡效果正常触发
     void modalElement.offsetHeight;
     // 添加active类开始过渡效果
@@ -1152,4 +1184,139 @@ async function updateModalCommentCount(postId) {
     } catch (error) {
         console.error('Error updating modal comment count:', error);
     }
-} 
+}
+
+// ==================== 热点栏目功能 ====================
+
+// 加载热门帖子
+async function loadHotPosts() {
+    try {
+        const hotPostsList = document.getElementById('hotPostsList');
+        
+        // 显示加载状态
+        hotPostsList.innerHTML = '<div class="loading-hot-posts">加载中...</div>';
+        
+        // 获取热门帖子（按点赞数排序）
+        const response = await fetch('/api/posts/hot?limit=10', {
+            credentials: 'include'
+        });
+        const result = await response.json();
+        
+        if (result.code === 200) {
+            const hotPosts = result.data || [];
+            renderHotPosts(hotPosts);
+        } else {
+            hotPostsList.innerHTML = '<div class="loading-hot-posts">加载失败</div>';
+        }
+    } catch (error) {
+        console.error('Error loading hot posts:', error);
+        const hotPostsList = document.getElementById('hotPostsList');
+        hotPostsList.innerHTML = '<div class="loading-hot-posts">加载失败</div>';
+    }
+}
+
+// 渲染热门帖子
+function renderHotPosts(posts) {
+    const hotPostsList = document.getElementById('hotPostsList');
+    
+    if (!posts || posts.length === 0) {
+        hotPostsList.innerHTML = '<div class="loading-hot-posts">暂无热门帖子</div>';
+        return;
+    }
+    
+    hotPostsList.innerHTML = posts.map((post, index) => createHotPostElement(post, index + 1)).join('');
+}
+
+// 创建热门帖子元素
+function createHotPostElement(post, rank) {
+    const rankClass = rank <= 3 ? `rank-${rank}` : 'rank-other';
+    const categoryMap = {
+        'game': '游戏',
+        'sports': '运动',
+        'funny': '搞笑',
+        'art': '艺术',
+        'kids': '儿童',
+        'food': '美食',
+        'nature': '自然',
+        'campus': '校园'
+    };
+    
+    return `
+        <div class="hot-post-item" data-post-id="${post.postId}" onclick="openHotPost(${post.postId})">
+            <div class="hot-post-rank ${rankClass}">${rank}</div>
+            <div class="hot-post-content">
+                <div class="hot-post-title">${post.title || '无标题'}</div>
+                <div class="hot-post-meta">
+                    <div class="hot-post-likes">
+                        <i class="fas fa-heart"></i>
+                        <span>${post.likes || 0}</span>
+                    </div>
+                    <div class="hot-post-category">${categoryMap[post.category] || '未分类'}</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// 打开热门帖子详情
+async function openHotPost(postId) {
+    try {
+        // 获取帖子详情
+        const response = await fetch(`/api/posts/${postId}`, {
+            credentials: 'include'
+        });
+        const result = await response.json();
+        
+        if (result.code === 200) {
+            const post = result.data;
+            showPostDetails(post);
+        } else {
+            alert('无法加载帖子详情');
+        }
+    } catch (error) {
+        console.error('Error opening hot post:', error);
+        alert('加载帖子详情失败');
+    }
+}
+
+// 侧边栏切换功能
+function initSidebar() {
+    const sidebar = document.getElementById('hotPostsSidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebarOpenBtn = document.getElementById('sidebarOpenBtn');
+    
+    // 关闭侧边栏
+    sidebarToggle.addEventListener('click', () => {
+        sidebar.classList.add('collapsed');
+        sidebarOpenBtn.style.display = 'flex';
+        
+        // 保存状态到localStorage
+        localStorage.setItem('sidebarCollapsed', 'true');
+    });
+    
+    // 打开侧边栏
+    sidebarOpenBtn.addEventListener('click', () => {
+        sidebar.classList.remove('collapsed');
+        sidebarOpenBtn.style.display = 'none';
+        
+        // 保存状态到localStorage
+        localStorage.setItem('sidebarCollapsed', 'false');
+    });
+    
+    // 恢复侧边栏状态
+    const isCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    if (isCollapsed) {
+        sidebar.classList.add('collapsed');
+        sidebarOpenBtn.style.display = 'flex';
+    }
+}
+
+// 定期刷新热门帖子
+function startHotPostsRefresh() {
+    // 每5分钟刷新一次热门帖子
+    setInterval(() => {
+        loadHotPosts();
+    }, 5 * 60 * 1000);
+}
+
+// ==================== 初始化 ====================
